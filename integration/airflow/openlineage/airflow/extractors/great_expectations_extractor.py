@@ -14,9 +14,9 @@ import logging
 from collections import defaultdict
 
 import attr
-from typing import Optional, Any, Dict, List
+from typing import Optional, Any, Dict
 
-from openlineage.client.facet import BaseFacet
+from openlineage.client.facet import ExpectationsAssertionsDatasetFacet, ExpectationAssertion
 
 from openlineage.airflow.extractors.base import BaseExtractor, StepMetadata
 from openlineage.airflow.facets import DataQualityDatasetFacet, ColumnMetric
@@ -58,25 +58,6 @@ class ExpectationsParserResult:
     facet_key: str = attr.ib()
     value: Any = attr.ib()
     column_id: Optional[str] = attr.ib(default=None)
-
-
-@attr.s
-class GreatExpectationsAssertion:
-    expectationType: str = attr.ib()
-    success: bool = attr.ib()
-    column: Optional[str] = attr.ib(default=None)
-
-
-@attr.s
-class GreatExpectationsAssertionsDatasetFacet(BaseFacet):
-    """
-    This facet represents passed/failed status of asserted expectations on dataset
-    """
-    assertions: List[GreatExpectationsAssertion] = attr.ib()
-
-    @staticmethod
-    def _get_schema() -> str:
-        return "https://github.com/OpenLineage/OpenLineage/tree/main/integration/airflow/openlineage/airflow/extractors/ge-assertions-dataset-facet.json"  # noqa
 
 
 def set_dataset_info(operator: GreatExpectationsOperator, namespace: str, name: str):
@@ -162,7 +143,8 @@ class GreatExpectationsExtractorImpl(BaseExtractor):
                 name=name,
                 custom_facets={
                     'dataQuality': data_quality_facet,
-                    'greatExpectations_assertions': assertions_facet
+                    'greatExpectations_assertions': assertions_facet,  # backwards compatibility
+                    'expectationsAssertions': assertions_facet
                 },
                 input_facets={
                     'dataQualityMetrics': data_quality_facet.to_openlineage()
@@ -205,19 +187,19 @@ class GreatExpectationsExtractorImpl(BaseExtractor):
         return None
 
     def parse_assertions(self, validation_result: Dict) -> \
-            Optional[GreatExpectationsAssertionsDatasetFacet]:
+            Optional[ExpectationsAssertionsDatasetFacet]:
         assertions = []
 
         try:
             expectations_results = validation_result['results']
             for expectation in expectations_results:
-                assertions.append(GreatExpectationsAssertion(
+                assertions.append(ExpectationAssertion(
                     expectationType=expectation['expectation_config']['expectation_type'],
                     success=expectation['success'],
                     column=expectation['expectation_config']['kwargs'].get('column', None)
                 ))
 
-            return GreatExpectationsAssertionsDatasetFacet(assertions)
+            return ExpectationsAssertionsDatasetFacet(assertions)
         except ValueError:
             log.exception(
                 "Great Expectations's CheckpointResult object does not have expected key"

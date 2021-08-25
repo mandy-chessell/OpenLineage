@@ -15,13 +15,13 @@ import pytest
 from pathlib import Path
 
 from openlineage.airflow.extractors.great_expectations_extractor import \
-    GreatExpectationsAssertionsDatasetFacet, GreatExpectationsAssertion, \
     GreatExpectationsExtractor, set_dataset_info
 
 from great_expectations_provider.operators.great_expectations import GreatExpectationsOperator
 
 from openlineage.airflow.facets import DataQualityDatasetFacet, ColumnMetric
-from openlineage.client.facet import DataQualityMetricsInputDatasetFacet
+from openlineage.client.facet import DataQualityMetricsInputDatasetFacet, \
+    ExpectationsAssertionsDatasetFacet, ExpectationAssertion
 from openlineage.client.serde import Serde
 
 log = logging.getLogger(__name__)
@@ -75,48 +75,48 @@ def test_great_expectations_operator_batch_kwargs_success():
         columnMetrics=expected_dq.columnMetrics
     )
 
-    expected_assertions = GreatExpectationsAssertionsDatasetFacet(
+    expected_assertions = ExpectationsAssertionsDatasetFacet(
         assertions=[
-            GreatExpectationsAssertion(
+            ExpectationAssertion(
                 expectationType='expect_table_row_count_to_be_between',
                 success=True
             ),
-            GreatExpectationsAssertion(
+            ExpectationAssertion(
                 expectationType='expect_column_values_to_not_be_null',
                 success=True,
                 column='vendor_id'
             ),
-            GreatExpectationsAssertion(
+            ExpectationAssertion(
                 expectationType='expect_column_distinct_values_to_be_in_set',
                 success=True,
                 column='vendor_id'
             ),
-            GreatExpectationsAssertion(
+            ExpectationAssertion(
                 expectationType='expect_column_unique_value_count_to_be_between',
                 success=True,
                 column='vendor_id'
             ),
-            GreatExpectationsAssertion(
+            ExpectationAssertion(
                 expectationType='expect_column_min_to_be_between',
                 success=True,
                 column='total_amount'
             ),
-            GreatExpectationsAssertion(
+            ExpectationAssertion(
                 expectationType='expect_column_max_to_be_between',
                 success=True,
                 column='total_amount'
             ),
-            GreatExpectationsAssertion(
+            ExpectationAssertion(
                 expectationType='expect_column_sum_to_be_between',
                 success=True,
                 column='total_amount'
             ),
-            GreatExpectationsAssertion(
+            ExpectationAssertion(
                 expectationType='expect_column_quantile_values_to_be_between',
                 success=True,
                 column='total_amount'
             ),
-            GreatExpectationsAssertion(
+            ExpectationAssertion(
                 expectationType='expect_column_distinct_values_to_be_in_set',
                 success=True,
                 column='passenger_count'
@@ -129,6 +129,7 @@ def test_great_expectations_operator_batch_kwargs_success():
     assert Serde.to_json(step.inputs[0].input_facets['dataQualityMetrics']) == \
            Serde.to_json(ol_dq_metrics)
     assert step.inputs[0].custom_facets['greatExpectations_assertions'] == expected_assertions
+    assert step.inputs[0].custom_facets['expectationsAssertions'] == expected_assertions
 
     assert result['success']
 

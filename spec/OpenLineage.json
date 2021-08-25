@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://openlineage.io/spec/1-0-0/OpenLineage.json",
+  "$id": "https://openlineage.io/spec/1-0-1/OpenLineage.json",
   "definitions": {
     "RunEvent": {
       "type": "object",
@@ -442,6 +442,41 @@
           ]
         }
       ]
+    },
+    "ExpectationsAssertionsDatasetFacet": {
+      "description": "list of tests performed on dataset or dataset columns, and their results",
+      "allOf": [
+        {
+          "$ref": "#/definitions/BaseFacet"
+        },
+        {
+          "type": "object",
+          "required": ["assertions"],
+          "properties": {
+            "assertions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "expectationType": {
+                    "type": "string",
+                    "description": "Type of expectation test that dataset is subjected to",
+                    "example":  "not_null"
+                  },
+                  "success": {"type":  "bool"},
+                  "column": {
+                    "type":  "string",
+                    "description": "Column that expectation is testing. If column field is empty, then expectation refers to whole dataset.",
+                    "example":  "id"
+                  }
+                },
+                "required": ["expectationType", "success"]
+              }
+            }
+          }
+        }
+      ],
+      "type": "object"
     },
     "DataQualityMetricsInputDatasetFacet": {
       "allOf": [
