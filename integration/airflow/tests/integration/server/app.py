@@ -66,3 +66,13 @@ def lineage():
         logger.info(f"GOT {len(received_requests)} requests")
 
         return jsonify(received_requests), 200
+
+
+@app.route("/clear", methods=['POST'])
+def clear():
+    conn = get_conn()
+    conn.execute("""
+        TRUNCATE TABLE requests 
+    """)
+    conn.commit()
+    return '', 200

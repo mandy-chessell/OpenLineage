@@ -43,9 +43,11 @@ COLORED_LOG = conf.getboolean('core', 'COLORED_CONSOLE_LOG')
 
 COLORED_FORMATTER_CLASS = conf.get('core', 'COLORED_FORMATTER_CLASS')
 
-BASE_LOG_FOLDER = conf.get('core', 'BASE_LOG_FOLDER')
+BASE_LOG_FOLDER = '/opt/airflow/logs'
+# BASE_LOG_FOLDER = conf.get('core', 'BASE_LOG_FOLDER')
 
-PROCESSOR_LOG_FOLDER = conf.get('scheduler', 'CHILD_PROCESS_LOG_DIRECTORY')
+PROCESSOR_LOG_FOLDER = '/opt/airflow/logs'
+# PROCESSOR_LOG_FOLDER = conf.get('scheduler', 'CHILD_PROCESS_LOG_DIRECTORY')
 
 DAG_PROCESSOR_MANAGER_LOG_LOCATION = \
     conf.get('core', 'DAG_PROCESSOR_MANAGER_LOG_LOCATION')
@@ -73,9 +75,10 @@ LOGGING_CONFIG = {
             'stream': 'sys.stdout'
         },
         'task': {
-            'class': 'airflow.utils.log.logging_mixin.RedirectStdHandler',
-            'formatter': 'airflow_coloured',
-            'stream': 'sys.stdout'
+            'class': 'airflow.utils.log.file_task_handler.FileTaskHandler',
+            'formatter': 'airflow',
+            'base_log_folder': os.path.expanduser(BASE_LOG_FOLDER),
+            'filename_template': FILENAME_TEMPLATE,
         },
         'processor': {
             'class': 'airflow.utils.log.file_processor_handler.FileProcessorHandler',
